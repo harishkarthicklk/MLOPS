@@ -11,8 +11,11 @@ BASE_DIR = os.path.dirname(
     os.path.abspath(__file__)
 )
 
-MODEL_PATH = "/models/production_model.pkl"
-
+MODEL_PATH = os.path.join(
+    BASE_DIR,
+    "model_registry",
+    "production_model.pkl"
+)
 @app.route("/health")
 def health():
 
