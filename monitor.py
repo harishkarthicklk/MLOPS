@@ -1,6 +1,7 @@
 import os
-import requests
+import json
 import time
+import requests
 import subprocess
 
 BASE_DIR = os.path.dirname(
@@ -13,7 +14,15 @@ ROLLBACK_SCRIPT = os.path.join(
     "rollback.py"
 )
 
-ROLLBACK_TRIGGERED = False
+METADATA_FILE = os.path.join(
+    BASE_DIR,
+    "model_registry",
+    "metadata.json"
+)
+
+FAILURE_COUNT = 0
+
+FAILURE_THRESHOLD = 3
 
 while True:
 
@@ -30,31 +39,15 @@ while True:
                 f"{time.ctime()} -> Healthy"
             )
 
+            FAILURE_COUNT = 0
+
         else:
 
             print(
                 f"{time.ctime()} -> Unhealthy"
             )
 
-            if not ROLLBACK_TRIGGERED:
-
-                result = subprocess.run(
-                    ["python", ROLLBACK_SCRIPT]
-                )
-
-                if result.returncode == 0:
-
-                    print(
-                        "Automatic Rollback Completed"
-                    )
-
-                    ROLLBACK_TRIGGERED = True
-
-                else:
-
-                    print(
-                        "Rollback Failed"
-                    )
+            FAILURE_COUNT += 1
 
     except Exception as e:
 
@@ -62,7 +55,26 @@ while True:
             f"{time.ctime()} -> Health Check Failed: {e}"
         )
 
-        if not ROLLBACK_TRIGGERED:
+        FAILURE_COUNT += 1
+
+    # ==========================
+    # Auto Rollback
+    # ==========================
+
+    if FAILURE_COUNT >= FAILURE_THRESHOLD:
+
+        with open(
+            METADATA_FILE,
+            "r"
+        ) as f:
+
+            metadata = json.load(f)
+
+        if metadata["rollback_version"] is None:
+
+            print(
+                "\nFailure Threshold Reached"
+            )
 
             result = subprocess.run(
                 ["python", ROLLBACK_SCRIPT]
@@ -74,12 +86,18 @@ while True:
                     "Automatic Rollback Completed"
                 )
 
-                ROLLBACK_TRIGGERED = True
-
             else:
 
                 print(
                     "Rollback Failed"
                 )
+
+        else:
+
+            print(
+                "Rollback Already Active"
+            )
+
+        FAILURE_COUNT = 0
 
     time.sleep(30)

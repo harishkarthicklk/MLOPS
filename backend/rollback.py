@@ -1,71 +1,85 @@
 import os
-import json
-import shutil
+import requests
+import time
+import subprocess
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
+)
 
-MODEL_REGISTRY = os.path.join(
+ROLLBACK_SCRIPT = os.path.join(
     BASE_DIR,
-    "..",
-    "model_registry"
-)
-ARTIFACTS_DIR = os.path.join(
-    MODEL_REGISTRY,
-    "artifacts"
+    "backend",
+    "rollback.py"
 )
 
-METADATA_FILE = os.path.join(
-    MODEL_REGISTRY,
-    "metadata.json"
-)
+ROLLBACK_TRIGGERED = False
 
-PRODUCTION_MODEL = os.path.join(
-    MODEL_REGISTRY,
-    "production_model.pkl"
-)
+while True:
 
-# ==========================
-# Load Metadata
-# ==========================
+    try:
 
-with open(METADATA_FILE, "r") as f:
-    metadata = json.load(f)
+        response = requests.get(
+            "http://localhost:5000/health",
+            timeout=5
+        )
 
-current_version = metadata["current_version"]
-previous_version = metadata["previous_version"]
+        if response.status_code == 200:
 
-if previous_version is None:
-    print("No Previous Version Available")
-    exit()
+            print(
+                f"{time.ctime()} -> Healthy"
+            )
 
-# ==========================
-# Restore Previous Version
-# ==========================
+        else:
 
-previous_model_path = os.path.join(
-    ARTIFACTS_DIR,
-    previous_version
-)
+            print(
+                f"{time.ctime()} -> Unhealthy"
+            )
 
-shutil.copy(
-    previous_model_path,
-    PRODUCTION_MODEL
-)
+            if not ROLLBACK_TRIGGERED:
 
-# ==========================
-# Update Metadata
-# ==========================
+                result = subprocess.run(
+                    ["python", ROLLBACK_SCRIPT]
+                )
 
-metadata["rollback_version"] = current_version
-metadata["current_version"] = previous_version
+                if result.returncode == 0:
 
-with open(METADATA_FILE, "w") as f:
-    json.dump(
-        metadata,
-        f,
-        indent=4
-    )
+                    print(
+                        "Automatic Rollback Completed"
+                    )
 
-print(
-    f"Rollback Successful -> {previous_version}"
-)
+                    ROLLBACK_TRIGGERED = True
+
+                else:
+
+                    print(
+                        "Rollback Failed"
+                    )
+
+    except Exception as e:
+
+        print(
+            f"{time.ctime()} -> Health Check Failed: {e}"
+        )
+
+        if not ROLLBACK_TRIGGERED:
+
+            result = subprocess.run(
+                ["python", ROLLBACK_SCRIPT]
+            )
+
+            if result.returncode == 0:
+
+                print(
+                    "Automatic Rollback Completed"
+                )
+
+                ROLLBACK_TRIGGERED = True
+
+            else:
+
+                print(
+                    "Rollback Failed"
+                )
+
+    time.sleep(30)
