@@ -13,6 +13,7 @@ BASE_DIR = os.path.dirname(
 
 MODEL_PATH = os.path.join(
     BASE_DIR,
+    "..",
     "model_registry",
     "production_model.pkl"
 )
