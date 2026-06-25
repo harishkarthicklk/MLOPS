@@ -15,7 +15,23 @@ MODEL_PATH = "/models/production_model.pkl"
 
 @app.route("/health")
 def health():
-    return {"status": "healthy"}
+
+    try:
+
+        model = joblib.load(
+            MODEL_PATH
+        )
+
+        return {
+            "status": "healthy"
+        }, 200
+
+    except Exception as e:
+
+        return {
+            "status": "unhealthy",
+            "error": str(e)
+        }, 500
 
 
 @app.route("/predict", methods=["POST"])
