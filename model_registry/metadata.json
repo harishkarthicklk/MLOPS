@@ -1,5 +1,5 @@
 {
-    "current_version": "model_v3.pkl",
-    "previous_version": "model_v2.pkl",
+    "current_version": "model_v2.pkl",
+    "previous_version": "model_v1.pkl",
     "rollback_version": null
 }
