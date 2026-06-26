@@ -57,7 +57,11 @@ METADATA_FILE = os.path.join(
     MODEL_REGISTRY,
     "metadata.json"
 )
-
+print("\n==============================")
+print("BASE_DIR:", BASE_DIR)
+print("MODEL_REGISTRY:", MODEL_REGISTRY)
+print("METADATA_FILE:", METADATA_FILE)
+print("==============================\n")
 # ==========================
 # Check Required Files
 # ==========================
