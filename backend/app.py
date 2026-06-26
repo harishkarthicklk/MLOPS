@@ -11,20 +11,22 @@ BASE_DIR = os.path.dirname(
     os.path.abspath(__file__)
 )
 
-MODEL_PATH = os.path.join(
-    BASE_DIR,
-    "..",
-    "model_registry",
-    "production_model.pkl"
-)
+MODEL_PATH = "/models/production_model.pkl"
 @app.route("/health")
 def health():
 
+    FAIL_FLAG = "/models/fail.flag"
+
+    if os.path.exists(FAIL_FLAG):
+
+        return {
+            "status": "unhealthy",
+            "reason": "Failure Flag Found"
+        }, 500
+
     try:
 
-        model = joblib.load(
-            MODEL_PATH
-        )
+        joblib.load(MODEL_PATH)
 
         return {
             "status": "healthy"

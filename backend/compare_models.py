@@ -38,6 +38,11 @@ CANDIDATE_MODEL = os.path.join(
     "candidate_model.pkl"
 )
 
+CANDIDATE_VERSION_FILE = os.path.join(
+    MODEL_REGISTRY,
+    "candidate_version.txt"
+)
+
 VALIDATION_DATA = os.path.join(
     VALIDATION_DIR,
     "validation_data.csv"
@@ -60,6 +65,7 @@ METADATA_FILE = os.path.join(
 required_files = [
     PRODUCTION_MODEL,
     CANDIDATE_MODEL,
+    CANDIDATE_VERSION_FILE,
     VALIDATION_DATA,
     METADATA_FILE
 ]
@@ -144,6 +150,14 @@ with open(METADATA_FILE, "r") as f:
     metadata = json.load(f)
 
 # ==========================
+# Read Candidate Version
+# ==========================
+
+with open(CANDIDATE_VERSION_FILE, "r") as f:
+
+    candidate_version = f.read().strip()
+
+# ==========================
 # Save Report
 # ==========================
 
@@ -168,14 +182,8 @@ if cand_score > prod_score:
 
     print("\nCandidate Outperforms Production")
 
-    candidate_version = input(
-        "\nEnter Candidate Version Name (example: model_v3.pkl): "
-    )
-
-    # Store current production version
     old_production = metadata["current_version"]
 
-    # Update metadata
     metadata["previous_version"] = old_production
 
     metadata["current_version"] = candidate_version
@@ -190,7 +198,6 @@ if cand_score > prod_score:
             indent=4
         )
 
-    # Replace production model
     shutil.copy(
         CANDIDATE_MODEL,
         PRODUCTION_MODEL

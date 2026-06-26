@@ -14,15 +14,27 @@ ROLLBACK_SCRIPT = os.path.join(
     "rollback.py"
 )
 
+UNROLLBACK_SCRIPT = os.path.join(
+    BASE_DIR,
+    "backend",
+    "unrollback.py"
+)
+
 METADATA_FILE = os.path.join(
     BASE_DIR,
     "model_registry",
     "metadata.json"
 )
 
-FAILURE_COUNT = 0
+print("BASE_DIR =", BASE_DIR)
+print("ROLLBACK_SCRIPT =", ROLLBACK_SCRIPT)
+print("UNROLLBACK_SCRIPT =", UNROLLBACK_SCRIPT)
 
+FAILURE_COUNT = 0
 FAILURE_THRESHOLD = 3
+
+HEALTHY_COUNT = 0
+HEALTHY_THRESHOLD = 3
 
 while True:
 
@@ -40,6 +52,7 @@ while True:
             )
 
             FAILURE_COUNT = 0
+            HEALTHY_COUNT += 1
 
         else:
 
@@ -48,6 +61,7 @@ while True:
             )
 
             FAILURE_COUNT += 1
+            HEALTHY_COUNT = 0
 
     except Exception as e:
 
@@ -56,6 +70,7 @@ while True:
         )
 
         FAILURE_COUNT += 1
+        HEALTHY_COUNT = 0
 
     # ==========================
     # Auto Rollback
@@ -77,8 +92,15 @@ while True:
             )
 
             result = subprocess.run(
-                ["python", ROLLBACK_SCRIPT]
+                ["python", ROLLBACK_SCRIPT],
+                capture_output=True,
+                text=True
             )
+
+            print(result.stdout)
+
+            if result.stderr:
+                print(result.stderr)
 
             if result.returncode == 0:
 
@@ -99,5 +121,49 @@ while True:
             )
 
         FAILURE_COUNT = 0
+
+    # ==========================
+    # Auto Rollforward
+    # ==========================
+
+    if HEALTHY_COUNT >= HEALTHY_THRESHOLD:
+
+        with open(
+            METADATA_FILE,
+            "r"
+        ) as f:
+
+            metadata = json.load(f)
+
+        if metadata["rollback_version"] is not None:
+
+            print(
+                "\nHealthy Threshold Reached"
+            )
+
+            result = subprocess.run(
+                ["python", UNROLLBACK_SCRIPT],
+                capture_output=True,
+                text=True
+            )
+
+            print(result.stdout)
+
+            if result.stderr:
+                print(result.stderr)
+
+            if result.returncode == 0:
+
+                print(
+                    "Automatic Rollforward Completed"
+                )
+
+            else:
+
+                print(
+                    "Rollforward Failed"
+                )
+
+        HEALTHY_COUNT = 0
 
     time.sleep(30)

@@ -1,85 +1,101 @@
 import os
-import requests
-import time
-import subprocess
+import json
+import shutil
 
 BASE_DIR = os.path.dirname(
     os.path.abspath(__file__)
 )
 
-ROLLBACK_SCRIPT = os.path.join(
+MODEL_REGISTRY = os.path.join(
     BASE_DIR,
-    "backend",
-    "rollback.py"
+    "..",
+    "model_registry"
 )
 
-ROLLBACK_TRIGGERED = False
+ARTIFACTS_DIR = os.path.join(
+    MODEL_REGISTRY,
+    "artifacts"
+)
 
-while True:
+METADATA_FILE = os.path.join(
+    MODEL_REGISTRY,
+    "metadata.json"
+)
 
-    try:
+PRODUCTION_MODEL = os.path.join(
+    MODEL_REGISTRY,
+    "production_model.pkl"
+)
 
-        response = requests.get(
-            "http://localhost:5000/health",
-            timeout=5
-        )
+# ==========================
+# Load Metadata
+# ==========================
 
-        if response.status_code == 200:
+with open(METADATA_FILE, "r") as f:
+    metadata = json.load(f)
 
-            print(
-                f"{time.ctime()} -> Healthy"
-            )
+# ==========================
+# Prevent Multiple Rollbacks
+# ==========================
 
-        else:
+if metadata["rollback_version"] is not None:
 
-            print(
-                f"{time.ctime()} -> Unhealthy"
-            )
+    print(
+        "Rollback Already Active"
+    )
 
-            if not ROLLBACK_TRIGGERED:
+    exit()
 
-                result = subprocess.run(
-                    ["python", ROLLBACK_SCRIPT]
-                )
+current_version = metadata["current_version"]
 
-                if result.returncode == 0:
+previous_version = metadata["previous_version"]
 
-                    print(
-                        "Automatic Rollback Completed"
-                    )
+if previous_version is None:
 
-                    ROLLBACK_TRIGGERED = True
+    print(
+        "No Previous Version Available"
+    )
 
-                else:
+    exit()
 
-                    print(
-                        "Rollback Failed"
-                    )
+# ==========================
+# Restore Previous Version
+# ==========================
 
-    except Exception as e:
+previous_model_path = os.path.join(
+    ARTIFACTS_DIR,
+    previous_version
+)
 
-        print(
-            f"{time.ctime()} -> Health Check Failed: {e}"
-        )
+if not os.path.exists(previous_model_path):
 
-        if not ROLLBACK_TRIGGERED:
+    print(
+        "Previous Model Not Found"
+    )
 
-            result = subprocess.run(
-                ["python", ROLLBACK_SCRIPT]
-            )
+    exit()
 
-            if result.returncode == 0:
+shutil.copy(
+    previous_model_path,
+    PRODUCTION_MODEL
+)
 
-                print(
-                    "Automatic Rollback Completed"
-                )
+# ==========================
+# Update Metadata
+# ==========================
 
-                ROLLBACK_TRIGGERED = True
+metadata["rollback_version"] = current_version
 
-            else:
+metadata["current_version"] = previous_version
 
-                print(
-                    "Rollback Failed"
-                )
+with open(METADATA_FILE, "w") as f:
 
-    time.sleep(30)
+    json.dump(
+        metadata,
+        f,
+        indent=4
+    )
+
+print(
+    f"Rollback Successful -> {previous_version}"
+)

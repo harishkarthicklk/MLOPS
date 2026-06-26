@@ -2,12 +2,16 @@ import os
 import json
 import shutil
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
+)
 
-MODEL_REGISTRY = os.path.join(
-    BASE_DIR,
-    "..",
-    "model_registry"
+MODEL_REGISTRY = os.path.abspath(
+    os.path.join(
+        BASE_DIR,
+        "..",
+        "model_registry"
+    )
 )
 
 ARTIFACTS_DIR = os.path.join(
@@ -30,12 +34,17 @@ PRODUCTION_MODEL = os.path.join(
 # ==========================
 
 with open(METADATA_FILE, "r") as f:
+
     metadata = json.load(f)
 
 rollback_version = metadata["rollback_version"]
 
 if rollback_version is None:
-    print("No Rollback Version Available")
+
+    print(
+        "No Rollback Version Available"
+    )
+
     exit()
 
 # ==========================
@@ -46,6 +55,16 @@ rollback_model_path = os.path.join(
     ARTIFACTS_DIR,
     rollback_version
 )
+
+if not os.path.exists(
+    rollback_model_path
+):
+
+    print(
+        f"Model Not Found: {rollback_model_path}"
+    )
+
+    exit()
 
 shutil.copy(
     rollback_model_path,
@@ -59,10 +78,16 @@ shutil.copy(
 current_version = metadata["current_version"]
 
 metadata["previous_version"] = current_version
+
 metadata["current_version"] = rollback_version
+
 metadata["rollback_version"] = None
 
-with open(METADATA_FILE, "w") as f:
+with open(
+    METADATA_FILE,
+    "w"
+) as f:
+
     json.dump(
         metadata,
         f,

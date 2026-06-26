@@ -5,4 +5,4 @@ Production Score : 0.9005
 Candidate Score  : 0.9059
 
 Result : Candidate Promoted
-Promoted Version : model_v1.pkl
+Promoted Version : model_v3.pkl
