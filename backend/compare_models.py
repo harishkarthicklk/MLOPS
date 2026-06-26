@@ -10,19 +10,9 @@ from sklearn.metrics import r2_score
 # Base Directory
 # ==========================
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+from config import MODEL_REGISTRY, VALIDATION_DATASET
 
-MODEL_REGISTRY = os.path.join(
-    BASE_DIR,
-    "..",
-    "model_registry"
-)
-
-VALIDATION_DIR = os.path.join(
-    BASE_DIR,
-    "..",
-    "validation_dataset"
-)
+VALIDATION_DIR = VALIDATION_DATASET
 
 # ==========================
 # File Paths
@@ -58,7 +48,7 @@ METADATA_FILE = os.path.join(
     "metadata.json"
 )
 print("\n==============================")
-print("BASE_DIR:", BASE_DIR)
+
 print("MODEL_REGISTRY:", MODEL_REGISTRY)
 print("METADATA_FILE:", METADATA_FILE)
 print("==============================\n")

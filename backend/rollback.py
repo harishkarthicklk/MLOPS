@@ -2,20 +2,7 @@ import os
 import json
 import shutil
 
-BASE_DIR = os.path.dirname(
-    os.path.abspath(__file__)
-)
-
-MODEL_REGISTRY = os.path.join(
-    BASE_DIR,
-    "..",
-    "model_registry"
-)
-
-ARTIFACTS_DIR = os.path.join(
-    MODEL_REGISTRY,
-    "artifacts"
-)
+from config import MODEL_REGISTRY, ARTIFACTS_DIR
 
 METADATA_FILE = os.path.join(
     MODEL_REGISTRY,

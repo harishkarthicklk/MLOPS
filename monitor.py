@@ -4,29 +4,27 @@ import time
 import requests
 import subprocess
 
-BASE_DIR = os.path.dirname(
-    os.path.abspath(__file__)
-)
+PROJECT_ROOT = r"C:\WEATHERMLOPS"
 
 ROLLBACK_SCRIPT = os.path.join(
-    BASE_DIR,
+    PROJECT_ROOT,
     "backend",
     "rollback.py"
 )
 
 UNROLLBACK_SCRIPT = os.path.join(
-    BASE_DIR,
+    PROJECT_ROOT,
     "backend",
     "unrollback.py"
 )
 
 METADATA_FILE = os.path.join(
-    BASE_DIR,
+    PROJECT_ROOT,
     "model_registry",
     "metadata.json"
 )
 
-print("BASE_DIR =", BASE_DIR)
+
 print("ROLLBACK_SCRIPT =", ROLLBACK_SCRIPT)
 print("UNROLLBACK_SCRIPT =", UNROLLBACK_SCRIPT)
 
