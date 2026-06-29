@@ -1,20 +1,26 @@
 import os
 
 # ======================================================
-# CHANGE THIS PATH ONLY IF YOU MOVE YOUR PROJECT
+# MODEL REGISTRY
 # ======================================================
 
-PROJECT_ROOT = r"C:\WEATHERMLOPS"
-
-MODEL_REGISTRY = os.path.join(
-    PROJECT_ROOT,
-    "model_registry"
+MODEL_REGISTRY = os.getenv(
+    "MODEL_REGISTRY",
+    r"C:\WEATHERMLOPS\model_registry"
 )
 
-VALIDATION_DATASET = os.path.join(
-    PROJECT_ROOT,
-    "validation_dataset"
+# ======================================================
+# VALIDATION DATASET
+# ======================================================
+
+VALIDATION_DATASET = os.getenv(
+    "VALIDATION_DATASET",
+    r"C:\WEATHERMLOPS\validation_dataset"
 )
+
+# ======================================================
+# ARTIFACTS DIRECTORY
+# ======================================================
 
 ARTIFACTS_DIR = os.path.join(
     MODEL_REGISTRY,

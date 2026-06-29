@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: backend
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: backend
+
+  template:
+    metadata:
+      labels:
+        app: backend
+
+    spec:
+      containers:
+      - name: backend
+
+        image: weather-backend:v3
+
+        imagePullPolicy: Never
+
+        ports:
+        - containerPort: 5000
+
+        env:
+        - name: MODEL_REGISTRY
+          value: "/models"
+
+        - name: VALIDATION_DATASET
+          value: "/validation_dataset"
+
+        # ==========================
+        # Readiness Probe
+        # ==========================
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        volumeMounts:
+
+        - name: model-storage
+          mountPath: /models
+
+        - name: validation-storage
+          mountPath: /validation_dataset
+
+      volumes:
+
+      - name: model-storage
+        persistentVolumeClaim:
+          claimName: weather-pvc
+
+      - name: validation-storage
+        persistentVolumeClaim:
+          claimName: validation-pvc
